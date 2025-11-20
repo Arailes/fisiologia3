@@ -1,614 +1,261 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MemoCARD Med: Fisiologia III IDOMED</title>
-    <style>
-        :root {
-            --primary-dark: #003b6f;
-            --primary-color: #005b96;
-            --primary-light: #6497b1;
-            --accent-color: #b3cde0;
-            --bg-color: #f4f7f9;
-            --card-bg: #ffffff;
-            --text-color: #333;
-            --text-light: #666;
-            --success-color: #2e7d32;
-            --warning-color: #ef6c00;
-            --danger-color: #c62828;
-            --shadow: 0 4px 20px rgba(0,0,0,0.08);
-            --radius: 12px;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        /* --- HEADER --- */
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            margin-top: 20px;
-            max-width: 800px;
-            animation: fadeIn 0.8s ease;
-        }
-
-        h1 {
-            color: var(--primary-dark);
-            font-size: 2.2rem;
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
-        }
-
-        p.subtitle {
-            color: var(--text-light);
-            font-size: 1.1rem;
-        }
-
-        /* --- GRID PRINCIPAL (Módulos) --- */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            max-width: 1200px;
-            width: 100%;
-            padding-bottom: 40px;
-        }
-
-        .module-card {
-            background-color: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 30px;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            border-top: 6px solid var(--primary-color);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .module-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
-        }
-
-        .module-card::after {
-            content: '→';
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 1.5rem;
-            color: var(--primary-light);
-            opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
-        }
-
-        .module-card:hover::after {
-            opacity: 1;
-            transform: translateX(5px);
-        }
-
-        .module-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--primary-dark);
-            margin-bottom: 12px;
-        }
-
-        .module-desc {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            line-height: 1.5;
-            margin-bottom: 20px;
-        }
-
-        /* --- BOTÕES --- */
-        .btn {
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        .btn-primary:hover { background-color: var(--primary-dark); }
-
-        .btn-special {
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-            color: white;
-            width: 100%;
-            text-align: center;
-            margin-top: 15px;
-            padding: 15px;
-            box-shadow: 0 4px 10px rgba(0, 91, 150, 0.3);
-        }
-        .btn-special:hover { transform: scale(1.02); }
-
-        /* --- MODAL SYSTEM --- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(5px);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .modal-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
-
-        /* Z-Index para empilhamento de modais */
-        #modalModule { z-index: 1000; }
-        #modalHormoneDashboard { z-index: 2000; }
-        #modalHormoneDetail { z-index: 3000; }
-
-        .modal-content {
-            background-color: white;
-            width: 95%;
-            max-width: 900px;
-            height: 90vh;
-            border-radius: var(--radius);
-            box-shadow: 0 25px 50px rgba(0,0,0,0.4);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transform: scale(0.9);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .modal-overlay.show .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .modal-title { font-size: 1.2rem; font-weight: bold; }
-
-        .close-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            transition: background 0.2s;
-        }
-        .close-btn:hover { background: rgba(255,255,255,0.4); }
-
-        .modal-body {
-            padding: 25px;
-            overflow-y: auto;
-            background-color: #f9f9f9;
-            flex-grow: 1;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* --- ACORDEÃO (Dentro do Módulo) --- */
-        .accordion-item {
-            margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            overflow: hidden;
-        }
-
-        .accordion-header {
-            width: 100%;
-            background-color: white;
-            padding: 18px 20px;
-            text-align: left;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-size: 1.05rem;
-            font-weight: 600;
-            color: var(--primary-dark);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .accordion-header:hover { background-color: var(--bg-color); }
-        .accordion-header.active { background-color: #e3f2fd; color: var(--primary-color); border-bottom: 1px solid #e0e0e0; }
-
-        .accordion-content {
-            padding: 0 20px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            background-color: white;
-        }
-        .accordion-content.open { padding: 20px; }
-
-        /* --- GRID DOS 12 HORMÔNIOS (Dashboard) --- */
-        .hormone-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 15px;
-        }
-
-        .hormone-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid var(--primary-light);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .hormone-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            border-left-color: var(--primary-color);
-        }
-
-        .hormone-name { font-weight: 700; color: var(--text-color); }
-
-        /* --- DETALHES DE CONTEÚDO --- */
-        .content-text p { margin-bottom: 12px; line-height: 1.6; text-align: justify; }
-        .content-text h3 { color: var(--primary-color); margin-top: 20px; margin-bottom: 10px; font-size: 1.1rem; border-left: 4px solid var(--accent-color); padding-left: 10px; }
-        .content-text ul, .content-text ol { margin-left: 20px; margin-bottom: 15px; }
-        .content-text li { margin-bottom: 6px; }
-
-        /* Tags */
-        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-right: 5px; text-transform: uppercase; vertical-align: middle; }
-        .tag-phy { background: #e8f5e9; color: var(--success-color); border: 1px solid #c8e6c9; }
-        .tag-pat { background: #ffebee; color: var(--danger-color); border: 1px solid #ffcdd2; }
-        .tag-cli { background: #fff3e0; color: var(--warning-color); border: 1px solid #ffe0b2; }
-
-        /* Tabelas */
-        .med-table { width: 100%; border-collapse: collapse; margin: 15px 0; font-size: 0.9rem; }
-        .med-table th, .med-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        .med-table th { background-color: var(--primary-color); color: white; }
-        .med-table tr:nth-child(even) { background-color: #f8f9fa; }
-
-        /* Responsividade */
-        @media (max-width: 600px) {
-            h1 { font-size: 1.8rem; }
-            .modal-content { width: 100%; height: 100%; border-radius: 0; }
-            .hormone-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Resumo Didático - Medicina (Atlas de Slides)</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#94a3b8;--glass: rgba(255,255,255,0.03);}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,#07101a 0%, #071827 100%);color:#e6eef6}
+    header{display:flex;align-items:center;gap:16px;padding:18px 20px;background:linear-gradient(90deg,rgba(255,255,255,0.02),transparent);backdrop-filter:blur(4px)}
+    header h1{font-size:1.05rem;margin:0}
+    .container{display:grid;grid-template-columns:320px 1fr;gap:18px;padding:18px;min-height:calc(100vh - 72px)}
+    nav{background:var(--card);border-radius:12px;padding:12px;min-height:200px;overflow:auto}
+    nav .search{display:flex;gap:8px;margin-bottom:12px}
+    nav input{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    nav .topic{margin:6px 0}
+    .topic button{width:100%;text-align:left;padding:10px;border-radius:8px;border:0;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);color:inherit;cursor:pointer}
+    .sublinks{padding-left:6px;margin-top:6px}
+    .sublinks a{display:block;padding:8px;border-radius:6px;text-decoration:none;color:var(--muted);font-size:0.92rem}
+    .sublinks a:hover{color:var(--accent);background:rgba(255,255,255,0.02)}
+    main{background:var(--glass);border-radius:12px;padding:18px;overflow:auto}
+    .content-header{display:flex;justify-content:space-between;align-items:center}
+    .content-header h2{margin:0;font-size:1.1rem}
+    .meta{color:var(--muted);font-size:0.9rem}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:14px;border-radius:10px;margin-top:14px}
+    .summary{line-height:1.45;color:#d7e6f2}
+    .images-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:12px}
+    .images-grid img, .images-grid embed{width:100%;border-radius:8px}
+    footer{padding:12px;text-align:center;color:var(--muted);font-size:0.85rem}
+    /* Mobile */
+    @media (max-width:900px){.container{grid-template-columns:1fr;}.content-header{flex-direction:column;align-items:flex-start}.nav-toggle{display:block}}
+    /* small utility */
+    .btn{background:var(--accent);color:#022;padding:8px 10px;border-radius:8px;border:0;cursor:pointer}
+    .hidden{display:none}
+    .pdf-embed{height:420px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+  </style>
 </head>
 <body>
-
-    <header>
-        <h1>Fisiologia III</h1>
-        <p class="subtitle">Plataforma de Estudo para Medicina IDOMED - Quixada-CE</p>
-    </header>
-
-    <div class="grid-container" id="mainGrid">
-        </div>
-
-    <div class="modal-overlay" id="modalModule">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="modal-title" id="moduleTitle">Título</span>
-                <button class="close-btn" onclick="closeModal('modalModule')">&times;</button>
-            </div>
-            <div class="modal-body" id="moduleBody"></div>
-        </div>
+  <header>
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect rx='6' ry='6' width='36' height='36' fill='%2306b6d4'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' font-size='18' font-family='Arial' fill='white'>M</text></svg>" alt="logo" style="width:36px;height:36px;border-radius:8px">
+    <div>
+      <h1>Resumos Didáticos — Medicina</h1>
+      <div class="meta">Página gerada automaticamente — layout responsivo para mobile/tablet/desktop</div>
     </div>
-
-    <div class="modal-overlay" id="modalHormoneDashboard">
-        <div class="modal-content" style="max-width: 1000px;">
-            <div class="modal-header" style="background-color: var(--primary-dark);">
-                <span class="modal-title">Painel: 12 Hormônios Reguladores</span>
-                <button class="close-btn" onclick="closeModal('modalHormoneDashboard')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p style="margin-bottom: 20px; color: #666;">Selecione um hormônio para ver detalhes clínicos e fisiológicos.</p>
-                <div class="hormone-grid" id="hormoneGrid">
-                    </div>
-            </div>
-        </div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <button class="btn" id="openAll">Abrir tudo</button>
+      <button class="btn" id="closeAll">Fechar tudo</button>
     </div>
+  </header>
 
-    <div class="modal-overlay" id="modalHormoneDetail">
-        <div class="modal-content" style="max-width: 600px; height: auto; max-height: 80vh;">
-            <div class="modal-header" style="background-color: var(--primary-light);">
-                <span class="modal-title" id="hormoneDetailTitle">Nome</span>
-                <button class="close-btn" onclick="closeModal('modalHormoneDetail')">&times;</button>
-            </div>
-            <div class="modal-body" id="hormoneDetailBody">
-                </div>
+  <div class="container">
+    <nav id="sidebar">
+      <div class="search"><input id="q" placeholder="Pesquisar tópico..." aria-label="Pesquisar"/></div>
+
+      <div class="topic" data-topic="digestivo">
+        <button class="topic-btn">Sistema Digestivo (Aula: Fisiologia)</button>
+        <div class="sublinks hidden">
+          <a href="#digestivo-intro">Introdução e anatomia geral</a>
+          <a href="#digestivo-neural">Regulação neural e entérica</a>
+          <a href="#digestivo-hormonios">Hormônios reguladores (resumo)</a>
+          <a href="#digestivo-degluticao">Deglutição e motilidade</a>
         </div>
-    </div>
+      </div>
 
-    <script>
-        // --- DADOS: SCRIPT 1 (12 HORMÔNIOS) ---
-        const hormonesData = [
-            { id: 1, nome: "Gastrina", funcao: "Estimula células parietais (HCl) e crescimento da mucosa.", producao: "Células G (Antro/Duodeno)", estimulo: "Proteínas, distensão, vagotonia.", clinica: "<strong>Síndrome de Zollinger-Ellison:</strong> Hipercloridria extrema, úlceras múltiplas." },
-            { id: 2, nome: "Secretina", funcao: "Estimula liberação de Bicarbonato pancreático (neutraliza ácido).", producao: "Células S (Duodeno)", estimulo: "pH ácido no duodeno.", clinica: "<strong>Deficiência:</strong> pH duodenal baixo, inativação enzimática e diarreia ácida." },
-            { id: 3, nome: "CCK (Colecistocinina)", funcao: "Contração da vesícula, enzimas pancreáticas, inibe esvaziamento gástrico.", producao: "Células I (Duodeno/Jejuno)", estimulo: "Gorduras e Proteínas.", clinica: "Essencial para digestão lipídica." },
-            { id: 4, nome: "Grelina", funcao: "Estimula o apetite (fome) e secreção de GH.", producao: "Fundo gástrico", estimulo: "Jejum (cai após refeição).", clinica: "Alvo em cirurgias bariátricas (retirada do fundo gástrico)." },
-            { id: 5, nome: "Peptídeo YY (PYY)", funcao: "Induz saciedade e inibe motilidade (freio ileal).", producao: "Íleo e Cólon", estimulo: "Nutrientes no íleo.", clinica: "Aumenta muito após bariátrica (saciedade precoce)." },
-            { id: 6, nome: "Motilina", funcao: "Coordena o Complexo Motor Migratório (limpeza em jejum).", producao: "Células M", estimulo: "Jejum (ciclos 90min).", clinica: "Agonistas da motilina (ex: eritromicina) tratam gastroparesia." },
-            { id: 7, nome: "Somatostatina", funcao: "Inibidor Universal (Gastrina, Insulina, Enzimas).", producao: "Células D (Pâncreas/Estômago)", estimulo: "pH muito ácido.", clinica: "<strong>Somatostatinoma:</strong> Má digestão, diarreia, diabetes leve." },
-            { id: 8, nome: "GIP", funcao: "Incretina: Estimula insulina dependente de glicose.", producao: "Células K", estimulo: "Glicose/Gordura oral.", clinica: "Explica por que glicose oral libera mais insulina que a venosa." },
-            { id: 9, nome: "GLP-1", funcao: "Estimula insulina, inibe glucagon, saciedade.", producao: "Células L (Íleo)", estimulo: "Nutrientes.", clinica: "<strong>Análogos (Semaglutida):</strong> Tratamento de Diabetes e Obesidade." },
-            { id: 10, nome: "Oximodulina", funcao: "Inibe esvaziamento gástrico, reduz apetite.", producao: "Células L", estimulo: "Alimentos.", clinica: "Regulação do peso corporal." },
-            { id: 11, nome: "VIP", funcao: "Vasodilatação esplâncnica, relaxa musculatura lisa.", producao: "Neurônios entéricos", estimulo: "Atividade vagal.", clinica: "<strong>VIPoma:</strong> Diarreia aquosa, Hipocalemia, Acloridria (Síndrome WDHA)." },
-            { id: 12, nome: "GRP", funcao: "Estimula liberação de gastrina.", producao: "Neurônios do antro", estimulo: "Vago.", clinica: "Mediador da fase cefálica da digestão." }
-        ];
+      <div class="topic" data-topic="hormones">
+        <button class="topic-btn">Hormônios do TGI (resumos práticos)</button>
+        <div class="sublinks hidden">
+          <a href="#h-gastrina">Gastrina</a>
+          <a href="#h-secretina">Secretina</a>
+          <a href="#h-cck">Colecistocinina (CCK)</a>
+          <a href="#h-glp1">GLP-1 / GIP / Outros</a>
+        </div>
+      </div>
 
-        // --- DADOS: SCRIPT 2 (CONTEÚDOS GERAIS) ---
-        const modulesData = [
-            {
-                id: "renal_path",
-                title: "Fisiologia Renal e Patologias",
-                desc: "Equilíbrio Ácido-Básico, Síndromes Nefrítica/Nefrótica e Injúria Renal.",
-                topics: [
-                    {
-                        title: "1. Equilíbrio Ácido-Básico",
-                        content: `
-                            <p><span class="tag tag-phy">Fisiologia</span> pH Normal: 7.35 - 7.45. Mantido por Pulmões (CO2) e Rins (HCO3).</p>
-                            <table class="med-table">
-                                <tr><th>Distúrbio</th><th>Alteração Primária</th><th>Compensação</th></tr>
-                                <tr><td>Acidose Metabólica</td><td>↓ HCO3</td><td>Hiperventilação (↓ CO2)</td></tr>
-                                <tr><td>Alcalose Metabólica</td><td>↑ HCO3</td><td>Hipoventilação (↑ CO2)</td></tr>
-                                <tr><td>Acidose Respiratória</td><td>↑ CO2</td><td>Rim retém HCO3</td></tr>
-                                <tr><td>Alcalose Respiratória</td><td>↓ CO2</td><td>Rim excreta HCO3</td></tr>
-                            </table>`
-                    },
-                    {
-                        title: "2. Síndrome Nefrítica vs Nefrótica",
-                        content: `
-                            <h3>Síndrome Nefrítica <span class="tag tag-pat">Inflamação</span></h3>
-                            <p>Inflamação glomerular. Tríade: <strong>Hematúria, Hipertensão, Edema</strong>. Ex: Glomerulonefrite Pós-Estreptocócica. Urina com cilindros hemáticos.</p>
-                            <h3>Síndrome Nefrótica <span class="tag tag-pat">Perda Proteica</span></h3>
-                            <p>Lesão da barreira. Proteinúria maciça (>3.5g/dia). Hipoalbuminemia, Anasarca, Hiperlipidemia. Risco de trombose e infecção.</p>`
-                    },
-                    {
-                        title: "3. Injúria Renal (Aguda e Crônica)",
-                        content: `
-                            <ul>
-                                <li><strong>IRA:</strong> Perda rápida. Causas: Pré-renal (desidratação), Renal (NTA, drogas), Pós-renal (cálculo).</li>
-                                <li><strong>IRC:</strong> Perda irreversível. Complicações: Anemia (falta EPO), Doença óssea (falta Vit D), Hipercalemia.</li>
-                            </ul>`
-                    }
-                ]
-            },
-            {
-                id: "digestive",
-                title: "Sistema Digestivo",
-                desc: "Controle Neural, Hormonal e Motilidade do TGI.",
-                topics: [
-                    {
-                        title: "1. Regulação Neural",
-                        content: `
-                            <p><strong>S.N. Entérico:</strong> Plexo Submucoso (Secreção) e Mioentérico (Motilidade).</p>
-                            <p><strong>S.N. Autônomo:</strong> Parassimpático (ACh) estimula. Simpático (NA) inibe.</p>`
-                    },
-                    {
-                        title: "2. Defesa e Estrutura",
-                        content: `
-                            <p>GALT (Tecido Linfoide): Placas de Peyer, IgA secretória. Barreiras: Muco, Ácido, Defensinas.</p>`
-                    },
-                    {
-                        title: "3. Regulação Hormonal (Painel Interativo)",
-                        content: `
-                            <div style="background-color: #e3f2fd; padding: 20px; border-radius: 8px; text-align: center; border: 1px dashed var(--primary-color);">
-                                <h3 style="margin-top:0; border:none;">Reguladores do TGI</h3>
-                                <p>O trato gastrointestinal é controlado por uma rede complexa de peptídeos.</p>
-                                <button class="btn btn-special" onclick="openHormoneDashboard()">
-                                    Acessar Painel dos 12 Hormônios
-                                </button>
-                            </div>`
-                    }
-                ]
-            },
-            {
-                id: "repro",
-                title: "Fisiologia Reprodutiva Masc.",
-                desc: "Diferenciação, Eixo Hormonal e Espermatogênese.",
-                topics: [
-                    {
-                        title: "1. Diferenciação Sexual",
-                        content: `
-                            <p>Gene SRY (Y) -> Testículos.</p>
-                            <ul>
-                                <li><strong>Sertoli Fetal:</strong> AMH (Degenera Müller/Útero).</li>
-                                <li><strong>Leydig Fetal:</strong> Testosterona (Mantém Wolff/Ductos).</li>
-                                <li><strong>DHT:</strong> Genitália Externa.</li>
-                            </ul>`
-                    },
-                    {
-                        title: "2. Eixo e Espermatogênese",
-                        content: `
-                            <p>GnRH pulsátil -> LH (Leydig->Testosterona) e FSH (Sertoli->Esperma).</p>
-                            <p>Espermatogênese: ~64 dias. Mitose -> Meiose -> Espermiogênese (diferenciação).</p>`
-                    }
-                ]
-            },
-            {
-                id: "renal_phys",
-                title: "Mecanismos Renais",
-                desc: "Filtração, Reabsorção e Secreção Tubular.",
-                topics: [
-                    {
-                        title: "1. Filtração e Túbulo Proximal",
-                        content: `
-                            <p>Filtra 180L/dia. Barreira de podócitos.</p>
-                            <p><strong>TCP:</strong> Reabsorve 100% Glicose/Aminoácidos e 80% H2O/Na. Local de secreção de ácidos e bases orgânicas.</p>`
-                    },
-                    {
-                        title: "2. Alça de Henle e Distal",
-                        content: `
-                            <p><strong>Alça:</strong> Contracorrente. Descendente concentra (sai água). Ascendente dilui (sai sal, impermeável à água).</p>
-                            <p><strong>Distal/Coletor:</strong> Ajuste fino. Aldosterona (reabsorve Na/excreta K). ADH (reabsorve água).</p>`
-                    }
-                ]
-            }
-        ];
+      <div class="topic" data-topic="renal">
+        <button class="topic-btn">Sistema Renal (Aula: Fisiologia)</button>
+        <div class="sublinks hidden">
+          <a href="#renal-anatomia">Anatomia e néfron</a>
+          <a href="#renal-filtracao">Filtração glomerular e pressões</a>
+          <a href="#renal-reabsorcao">Reabsorção tubular e alça de Henle</a>
+          <a href="#renal-regulacao">SRAA, ADH e controle de água</a>
+        </div>
+      </div>
 
-        // --- LÓGICA JS ---
+      <div class="topic" data-topic="glomerulo">
+        <button class="topic-btn">Glomerulopatias e distúrbios ácido-base</button>
+        <div class="sublinks hidden">
+          <a href="#g-gn">Síndrome nefrítica (GN)</a>
+          <a href="#g-nefrotica">Síndrome nefrótica</a>
+          <a href="#g-injuria">Injúria renal aguda e crônica</a>
+        </div>
+      </div>
 
-        // 1. Renderizar Grid Principal
-        const mainGrid = document.getElementById('mainGrid');
-        modulesData.forEach(mod => {
-            const card = document.createElement('div');
-            card.className = 'module-card';
-            card.innerHTML = `
-                <div>
-                    <div class="module-title">${mod.title}</div>
-                    <div class="module-desc">${mod.desc}</div>
-                </div>
-                <button class="btn btn-primary">Acessar Módulo</button>
-            `;
-            card.onclick = () => openModule(mod);
-            mainGrid.appendChild(card);
-        });
+      <div class="topic" data-topic="repro">
+        <button class="topic-btn">Diferenciação sexual e sistema reprodutor masculino</button>
+        <div class="sublinks hidden">
+          <a href="#r-diferenca">Determinação e diferenciação sexual</a>
+          <a href="#r-androgenos">Androgênios, puberdade e função</a>
+          <a href="#r-espermato">Espermatogênese e anatomia</a>
+        </div>
+      </div>
 
-        // 2. Renderizar Grid de Hormônios (Preparação)
-        const hormoneGrid = document.getElementById('hormoneGrid');
-        hormonesData.forEach(h => {
-            const card = document.createElement('div');
-            card.className = 'hormone-card';
-            card.innerHTML = `
-                <span class="hormone-name">${h.nome}</span>
-                <span style="color: var(--primary-light); font-weight:bold;">+</span>
-            `;
-            card.onclick = () => openHormoneDetail(h);
-            hormoneGrid.appendChild(card);
-        });
+      <div style="margin-top:12px;color:var(--muted);font-size:0.9rem">Arquivos fonte: links para PDFs originais (abrir para consultar imagens/figuras dos slides)</div>
+      <ul style="margin-top:8px;color:var(--muted);font-size:0.9rem">
+        <li><a href="/mnt/data/Fisiologia SOI-III- Aula 01 (Sistema Digestivo) 25.2.pdf" target="_blank" style="color:var(--muted)">Sistema Digestivo — Slides</a></li>
+        <li><a href="/mnt/data/12 hormonios reguladores Sistema Digestivo.pdf" target="_blank" style="color:var(--muted)">Hormônios reguladores — PDF</a></li>
+        <li><a href="/mnt/data/AULA 09 - Sistema Renal.pdf" target="_blank" style="color:var(--muted)">Sistema Renal — Slides</a></li>
+        <li><a href="/mnt/data/AULA 10 - Renal 2 - Glomerulopatias.pdf" target="_blank" style="color:var(--muted)">Glomerulopatias — Slides</a></li>
+        <li><a href="/mnt/data/AULA 7-  DIFERENCIACAO SEXUAL E REP MASCULINO 2024_1.pdf" target="_blank" style="color:var(--muted)">Diferenciação Sexual — Slides</a></li>
+      </ul>
+    </nav>
 
-        // 3. Funções de Modal
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.add('show');
-            modal.style.display = 'flex';
-        }
+    <main id="main">
+      <div id="digestivo-intro" class="card">
+        <div class="content-header"><h2>Sistema Digestivo — Introdução e Anatomia</h2><div class="meta">Base: Aula (Fisiologia do Sistema Digestivo)</div></div>
+        <p class="summary">O trato gastrointestinal é um tubo que separa o meio externo do interno; inclui cavidade oral, faringe, esôfago, estômago, intestinos e glândulas anexas (fígado, vesícula, pâncreas). A mucosa e GALT fazem defesa local (IgA, Peyer). O TGI realiza digestão, absorção, defesa e transporte. Principais conceitos: peristaltismo, movimentos de mistura, secreções e absorção de água e eletrólitos.</p>
+        <div class="images-grid">
+          <embed class="pdf-embed" src="/mnt/data/Fisiologia SOI-III- Aula 01 (Sistema Digestivo) 25.2.pdf#page=2" type="application/pdf">
+        </div>
+      </div>
 
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('show');
-            setTimeout(() => {
-                if(!modal.classList.contains('show')) modal.style.display = 'none';
-            }, 300); // Espera animação
-        }
+      <div id="digestivo-neural" class="card">
+        <h3>Regulação neural e entérica</h3>
+        <p class="summary">O sistema nervoso entérico (plexo submucoso e mioentérico) controla secreção, fluxo sanguíneo e motilidade. O sistema autonômico modula: parassimpático (vago) excita o TGI; simpático inibe. Reflexos curtos (intramurais) e longos (centrais) coordenam respostas à alimentação.</p>
+        <div class="images-grid">
+          <embed class="pdf-embed" src="/mnt/data/Fisiologia SOI-III- Aula 01 (Sistema Digestivo) 25.2.pdf#page=9" type="application/pdf">
+        </div>
+      </div>
 
-        // Fechar ao clicar fora
-        window.onclick = function(event) {
-            if (event.target.classList.contains('modal-overlay')) {
-                closeModal(event.target.id);
-            }
-        }
+      <div id="digestivo-hormonios" class="card">
+        <h3>Hormônios reguladores do TGI — Resumo prático</h3>
+        <p class="summary">Hormônios importantes: Gastrina (estimula HCl e mucosa), Secretina (estimula bicarbonato pancreático), CCK (enzimas pancreáticas + vesícula biliar), Grelina (apetite), PYY/GLP-1 (saciedade, retardo do esvaziamento), Motilina (CMM - jejum), Somatostatina (inibe múltiplas secreções), GIP (incretina). Veja cada um para clínica (excesso/deficiência).</p>
+        <div class="images-grid">
+          <embed class="pdf-embed" src="/mnt/data/12 hormonios reguladores Sistema Digestivo.pdf#page=1" type="application/pdf">
+        </div>
+      </div>
 
-        // 4. Abrir Módulo
-        function openModule(module) {
-            document.getElementById('moduleTitle').innerText = module.title;
-            const body = document.getElementById('moduleBody');
-            body.innerHTML = '';
+      <div id="digestivo-degluticao" class="card">
+        <h3>Deglutição e fases</h3>
+        <p class="summary">Deglutição tem fase voluntária (preparação), faríngea (reflexo) e esofágica (peristaltismo). Nervos envolvidos: V, IX, X e XII. Esfíncteres e fechamento laríngeo evitam aspiração.</p>
+      </div>
 
-            module.topics.forEach(topic => {
-                const item = document.createElement('div');
-                item.className = 'accordion-item';
-                
-                const header = document.createElement('button');
-                header.className = 'accordion-header';
-                header.innerHTML = `${topic.title} <span>▼</span>`;
-                
-                const content = document.createElement('div');
-                content.className = 'accordion-content';
-                content.innerHTML = `<div class="content-text">${topic.content}</div>`;
+      <div id="h-gastrina" class="card">
+        <h3>Gastrina — ponto chave</h3>
+        <p class="summary">Produzida pelas células G do antro e duodeno; estímulos: proteínas, distensão; ação: aumenta secreção de HCl e crescimento da mucosa. Clínica: gastrinoma (Zollinger-Ellison) — úlceras refratárias e hipercloridria.</p>
+      </div>
 
-                header.onclick = () => {
-                    header.classList.toggle('active');
-                    content.classList.toggle('open');
-                    if(content.classList.contains('open')) {
-                        content.style.maxHeight = content.scrollHeight + "px";
-                        header.querySelector('span').innerText = '▲';
-                    } else {
-                        content.style.maxHeight = null;
-                        header.querySelector('span').innerText = '▼';
-                    }
-                };
+      <div id="h-secretina" class="card">
+        <h3>Secretina e ação clínica</h3>
+        <p class="summary">Células S no duodeno respondem ao pH ácido; secretina estimula liberação de bicarbonato pancreático e bile alcalina; inibe secreção ácida gástrica — importante para neutralização do quimo e ativação enzimática intestinal.</p>
+      </div>
 
-                item.appendChild(header);
-                item.appendChild(content);
-                body.appendChild(item);
-            });
+      <div id="h-cck" class="card">
+        <h3>CCK — Colecistocinina</h3>
+        <p class="summary">Estimulada por gorduras e proteínas no quimo; promove contração da vesícula e secreção enzimática pancreática; retarda esvaziamento gástrico e reduz apetite.</p>
+      </div>
 
-            openModal('modalModule');
-        }
+      <div id="h-glp1" class="card">
+        <h3>GLP-1, GIP e incretinas</h3>
+        <p class="summary">GLP-1: estimula insulina, inibe glucagon, aumenta saciedade e retarda esvaziamento (agonistas úteis no DM2 e obesidade). GIP: estimula insulina em resposta à glicose oral.</p>
+      </div>
 
-        // 5. Abrir Dashboard de Hormônios (Integrado no Módulo Digestivo)
-        function openHormoneDashboard() {
-            openModal('modalHormoneDashboard');
-        }
+      <div id="renal-anatomia" class="card">
+        <div class="content-header"><h2>Sistema Renal — Anatomia e Néfron</h2><div class="meta">Base: Aula Sistema Renal</div></div>
+        <p class="summary">Rim composto por néfrons (corticais e justaglomerulares). Funções: filtração glomerular, reabsorção tubular e secreção. O néfron inclui corpúsculo renal (glomérulo + cápsula de Bowman), TCP, alça de Henle, TCD e ducto coletor.</p>
+        <div class="images-grid">
+          <embed class="pdf-embed" src="/mnt/data/AULA 09 - Sistema Renal.pdf#page=2" type="application/pdf">
+        </div>
+      </div>
 
-        // 6. Abrir Detalhe do Hormônio
-        function openHormoneDetail(h) {
-            document.getElementById('hormoneDetailTitle').innerText = h.nome;
-            document.getElementById('hormoneDetailBody').innerHTML = `
-                <div class="content-text">
-                    <div style="background:#f0f7ff; padding:15px; border-radius:8px; margin-bottom:15px;">
-                        <strong>Função Principal:</strong><br>${h.funcao}
-                    </div>
-                    <p><strong>Produção:</strong> ${h.producao}</p>
-                    <p><strong>Estímulo:</strong> ${h.estimulo}</p>
-                    <div style="margin-top:15px; padding:10px; border-left: 4px solid var(--danger-color); background: #fff5f5;">
-                        ${h.clinica}
-                    </div>
-                </div>
-            `;
-            openModal('modalHormoneDetail');
-        }
+      <div id="renal-filtracao" class="card">
+        <h3>Filtração glomerular</h3>
+        <p class="summary">Filtro glomerular com endotélio, membrana basal e podócitos; filtra água e solutos pequenos, retém proteínas e células; GFR depende de pressões hidrostáticas e oncóticas (pressão capilar glomerular vs. oncótica plasmática).</p>
+      </div>
 
-    </script>
+      <div id="renal-reabsorcao" class="card">
+        <h3>Reabsorção tubular e alça de Henle</h3>
+        <p class="summary">TCP: reabsorve a maior parte de água, glicose e sais. Alça de Henle: descendente permeável à água; ascendente impermeável e ativa transporte de Na+ — importante para concentração da urina. TCD e ductos coletores respondem a ADH e aldosterona.</p>
+      </div>
+
+      <div id="renal-regulacao" class="card">
+        <h3>SRAA, ADH e regulação da água</h3>
+        <p class="summary">SRAA (renina → angiotensina II → aldosterona) conserva Na+ e água; ADH aumenta permeabilidade ao H2O nos ductos coletores. Feedback tubuloglomerular (mácula densa) ajusta resistência arteriolar aferente/eferente.</p>
+      </div>
+
+      <div id="g-gn" class="card">
+        <h3>Síndrome Nefrítica (Glomerulonefrite)</h3>
+        <p class="summary">Processo inflamatório glomerular com hematúria dismórfica, cilindros hemáticos, oligúria, hipertensão e edema; exemplo clássico: GN pós-estreptocócica.</p>
+      </div>
+
+      <div id="g-nefrotica" class="card">
+        <h3>Síndrome Nefrótica</h3>
+        <p class="summary">Perda maciça de proteínas (>3-3,5 g/dia), hipoalbuminemia, edema, hiperlipidemia; complicações: infecções e tendência trombótica (perda de antitrombina III).</p>
+      </div>
+
+      <div id="g-injuria" class="card">
+        <h3>Injúria renal aguda e crônica</h3>
+        <p class="summary">IRA: causas pré-renal, renal e pós-renal; IRC: perda progressiva de função renal com complicações sistêmicas (anemia, hiperparatireoidismo secundário, acidose, dislipidemia).</p>
+      </div>
+
+      <div id="r-diferenca" class="card">
+        <h3>Diferenciação sexual — conceitos essenciais</h3>
+        <p class="summary">Sexo cromossômico (XX/XY) determina SRY (Y) → formação de testículos; testículos secretam testosterona e AMH (MIS) que promovem diferenciação do trato genital masculino e regressão dos ductos de Müller.</p>
+        <div class="images-grid">
+          <embed class="pdf-embed" src="/mnt/data/AULA 7-  DIFERENCIACAO SEXUAL E REP MASCULINO 2024_1.pdf#page=4" type="application/pdf">
+        </div>
+      </div>
+
+      <div id="r-androgenos" class="card">
+        <h3>Androgênios, puberdade e função</h3>
+        <p class="summary">Testosterona e DHT dirigem virilização; pulsos de GnRH desencadeiam puberdade; andropausa: declínio gradual da testosterona na meia-idade com efeitos sobre massa muscular, libido e densidade óssea.</p>
+      </div>
+
+      <div id="r-espermato" class="card">
+        <h3>Espermatogênese e anatomia</h3>
+        <p class="summary">Espermatogênese demora ~64 dias; túbulos seminíferos têm células de Sertoli (suporte) e Leydig (produção de testosterona). Trajeto dos espermatozoides: túbulos seminíferos → epidídimo → ducto deferente → uretra.</p>
+      </div>
+
+      <footer>Gerado como página única. Para hospedar: salve este arquivo como <code>index.html</code> e envie para seu host (Netlify/Render/GitHub Pages). PDFs de origem estão linkados no menu lateral para consulta das figuras originais.</footer>
+    </main>
+  </div>
+
+  <script>
+    // interatividade básica: toggles e busca
+    document.querySelectorAll('.topic-btn').forEach(btn=>{
+      btn.addEventListener('click',e=>{
+        const sub = btn.nextElementSibling;
+        sub.classList.toggle('hidden');
+      })
+    });
+    document.getElementById('openAll').addEventListener('click',()=>document.querySelectorAll('.sublinks').forEach(s=>s.classList.remove('hidden')));
+    document.getElementById('closeAll').addEventListener('click',()=>document.querySelectorAll('.sublinks').forEach(s=>s.classList.add('hidden')));
+
+    // link anchors smooth scroll
+    document.querySelectorAll('a[href^="#"]').forEach(a=>{
+      a.addEventListener('click',e=>{e.preventDefault();document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth',block:'start'})})
+    });
+
+    // quick search in sidebar
+    document.getElementById('q').addEventListener('input',function(){
+      const v=this.value.toLowerCase();
+      document.querySelectorAll('nav .topic').forEach(t=>{
+        const topic = t.querySelector('.topic-btn').textContent.toLowerCase();
+        const sublinks = Array.from(t.querySelectorAll('.sublinks a')).map(x=>x.textContent.toLowerCase()).join(' ');
+        const visible = topic.includes(v) || sublinks.includes(v) || v==='';
+        t.style.display = visible? 'block':'none';
+        if(visible) t.querySelector('.sublinks').classList.remove('hidden');
+      })
+    });
+
+    // accessibility: allow keyboard navigation to open/close
+    document.querySelectorAll('.topic-btn').forEach(btn=>btn.setAttribute('tabindex','0'));
+
+    // small defensive checks (compatibility)
+    if(!('scrollIntoView' in Element.prototype)){
+      // fallback: no-op
+    }
+  </script>
 </body>
 </html>
